@@ -59,20 +59,24 @@ app.get('/', function (req, res, next) {
     //Let's purposefully break our app
     const status = Math.floor(Math.random() * (500 - 400)) + 400;
     
-    res.send({ error: true, random: randomNumber }).status(status);
+    res.send({ error: true, random: randomNumber, description: "It was set up to happen, reload till it doesn't" }).status(status);
     
     next(new Error(`Error was caused by a random number greater than 150 with  value ${requestRandomNumber} and status ${status}`));
 
   } else {
     res.send(`
     Random number for this pod is: + ${randomNumber}. 
-    <br \>
+    <br />
     You env variable with property key is: ${process.env.KEY}
+    <br />
+    <br />
+    You can go the following urls: 
+    <a href="/trace">Start a trace log</a>
+    <br/>
+    <a href="/ready">See internal app engine environment variables</a> 
     `).status(200);
   }
 });
-
-
 
 // This incoming HTTP request should be captured by Trace
 app.get('/trace', (req, res) => {
