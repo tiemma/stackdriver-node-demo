@@ -6,6 +6,7 @@ if (process.env.NODE_ENV === 'production') {
   require('@google-cloud/trace-agent').start({ enhancedDatabaseReporting: true});
 }
 
+require('@google-cloud/debug-agent').start();
 
 const app = require('express')();
 const http = require('http').Server(app);
