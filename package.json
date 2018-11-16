@@ -23,6 +23,8 @@
   },
   "homepage": "https://github.com/Tiemma/kafka-websockets-node#readme",
   "dependencies": {
+    "@google-cloud/error-reporting": "^0.5.1",
+    "dotenv": "^6.1.0",
     "express": "^4.16.4",
     "socket.io": "^1.7.3"
   }
