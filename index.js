@@ -42,22 +42,25 @@ const logger = bunyan.createLogger({
   // will contain "name": "my-service"
   name: 'default-service-stackdriver-node-demo',
   streams: [
-    // Log to the console at 'info' and above
+    // Log to the console at 'debug' and above
     {stream: process.stdout, level: 'debug'},
     // And log to Stackdriver Logging, logging at 'info' and above
     loggingBunyan.stream('info'),
   ],
 });
 
-
-
 app.get('/', function (req, res, next) {
   requestRandomNumber = Math.floor(Math.random() * 255);
+  
   logger.info(`/ route called and requestRandomNumber has value: ${requestRandomNumber}`);
+  
   if (requestRandomNumber > 150) {
+  	
     //Let's purposefully break our app
     const status = Math.floor(Math.random() * (500 - 400)) + 400;
+    
     res.send({ error: true, random: randomNumber }).status(status);
+    
     next(new Error(`Error was caused by a random number greater than 150 with  value ${requestRandomNumber} and status ${status}`));
 
   } else {
@@ -79,11 +82,19 @@ app.get('/trace', (req, res) => {
   got(DISCOVERY_URL, { json: true })
     .then((response) => {
       const names = response.body.items.map((item) => item.name);
-
+      
       res
         .status(200)
         .send(names.join('\n'))
         .end();
+
+//	setTimeout(() => {
+//		res
+//        .status(200)
+//        .send(names.join('\n'))
+//        .end();
+//	}, 2000);
+      
     })
     .catch((err) => {
       logger.error(err);
@@ -93,20 +104,13 @@ app.get('/trace', (req, res) => {
     });
 });
 
-
 app.get('/ready', function (req, res) {
   res.send({ success: true, data: process.env }).status(200);
 });
 
-app.get('/logs', function (req, res) {
-  res.sendFile(__dirname + '/index.html');
-});
-
-
 // Note that express error handling middleware should be attached after all
 // the other routes and use() calls. See the Express.js docs.
 app.use(errors.express);
-
 
 http.listen(port, function () {
   logger.info('listening on *:' + port);
