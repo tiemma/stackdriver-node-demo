@@ -1,13 +1,15 @@
-const app = require('express')();
-const http = require('http').Server(app);
-const port = process.env.PORT || 3000;
-
-const randomNumber = Math.floor(Math.random() * 255);
-let requestRandomNumber = null;
-
-
 //Import local environment config
 require("dotenv").config();
+
+//Imports the tracing library and starts it
+if (process.env.NODE_ENV === 'production') {
+  require('@google-cloud/trace-agent').start({ enhancedDatabaseReporting: true});
+}
+
+
+const app = require('express')();
+const http = require('http').Server(app);
+const got = require('got');
 
 // Imports the Google Cloud client library
 const ErrorReporting = require('@google-cloud/error-reporting').ErrorReporting;
@@ -16,9 +18,12 @@ const ErrorReporting = require('@google-cloud/error-reporting').ErrorReporting;
 // syntax can be used instead:
 // import {ErrorReporting} from '@google-cloud/error-reporting';
 
+const port = process.env.PORT || 3000;
+const randomNumber = Math.floor(Math.random() * 255);
+let requestRandomNumber = null;
+
 // Instantiates a client
 const errors = new ErrorReporting();
-
 
 app.get('/', function (req, res, next) {
   requestRandomNumber = Math.floor(Math.random() * 255);
@@ -38,6 +43,31 @@ app.get('/', function (req, res, next) {
     `).status(200);
   }
 });
+
+
+
+// This incoming HTTP request should be captured by Trace
+app.get('/trace', (req, res) => {
+  const DISCOVERY_URL = 'https://www.googleapis.com/discovery/v1/apis';
+  
+  // This outgoing HTTP request should be captured by Trace
+  got(DISCOVERY_URL, { json: true })
+    .then((response) => {
+      const names = response.body.items.map((item) => item.name);
+
+      res
+        .status(200)
+        .send(names.join('\n'))
+        .end();
+    })
+    .catch((err) => {
+      console.error(err);
+      res
+        .status(500)
+        .end();
+    });
+});
+
 
 app.get('/ready', function (req, res) {
   res.send({ success: true, data: process.env }).status(200);
