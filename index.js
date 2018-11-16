@@ -15,7 +15,7 @@ const http = require('http').Server(app);
 const got = require('got');
 
 // Imports the Google Cloud client library
-const ErrorReporting = require('@google-cloud/error-reporting').ErrorReporting;
+const {ErrorReporting} = require('@google-cloud/error-reporting');
 
 // With ES6 style imports via TypeScript or Babel, the following
 // syntax can be used instead:
@@ -28,15 +28,37 @@ let requestRandomNumber = null;
 // Instantiates a client
 const errors = new ErrorReporting();
 
+// Here's where all the logging stuff goes
+const bunyan = require('bunyan');
+
+// Imports the Google Cloud client library for Bunyan
+const {LoggingBunyan} = require('@google-cloud/logging-bunyan');
+const loggingBunyan = new LoggingBunyan();
+
+// Create a Bunyan logger that streams to Stackdriver Logging
+// Logs will be written to: "projects/YOUR_PROJECT_ID/logs/bunyan_log"
+const logger = bunyan.createLogger({
+  // The JSON payload of the log as it appears in Stackdriver Logging
+  // will contain "name": "my-service"
+  name: 'default-service-stackdriver-node-demo',
+  streams: [
+    // Log to the console at 'info' and above
+    {stream: process.stdout, level: 'debug'},
+    // And log to Stackdriver Logging, logging at 'info' and above
+    loggingBunyan.stream('info'),
+  ],
+});
+
+
+
 app.get('/', function (req, res, next) {
   requestRandomNumber = Math.floor(Math.random() * 255);
+  logger.info(`/ route called and requestRandomNumber has value: ${requestRandomNumber}`);
   if (requestRandomNumber > 150) {
     //Let's purposefully break our app
     const status = Math.floor(Math.random() * (500 - 400)) + 400;
     res.send({ error: true, random: randomNumber }).status(status);
-    next(new Error(`Error was caused by a random number greater than 150 with 
-    value ${requestRandomNumber} 
-    and status ${status}`));
+    next(new Error(`Error was caused by a random number greater than 150 with  value ${requestRandomNumber} and status ${status}`));
 
   } else {
     res.send(`
@@ -64,7 +86,7 @@ app.get('/trace', (req, res) => {
         .end();
     })
     .catch((err) => {
-      console.error(err);
+      logger.error(err);
       res
         .status(500)
         .end();
@@ -87,7 +109,7 @@ app.use(errors.express);
 
 
 http.listen(port, function () {
-  console.log('listening on *:' + port);
+  logger.info('listening on *:' + port);
 });
 
 
