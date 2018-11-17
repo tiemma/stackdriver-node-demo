@@ -145,7 +145,7 @@ Since I'm using Node, I'd be taking Bunyan as my logging library. Need to see th
 
 ```javascript
 // Imports the Google Cloud client library for Bunyan
-const {LoggingBunyan} = require('@google-cloud/logging-bunyan’);
+const {LoggingBunyan} = require('@google-cloud/logging-bunyan');
 const loggingBunyan = new LoggingBunyan();
 
 // Create a Bunyan logger that streams to Stackdriver Logging
