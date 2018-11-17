@@ -134,6 +134,69 @@ It's that easy, you can then go the debugger dashboard setup here and easily con
 You can access the dashboard here and see these things in practice [here](https://console.cloud.google.com/debug)
 
 
+## Logging
+
+This is what Stackdriver does by default but we can't just ingest all our print lines to the console and call that logs.
+
+Logging has a format to make sure you can easily search through them when Stackdriver Logging takes them. There are a lot of logging libraries in your language of choice and Stackdrive has added adapters to help you automatically stream your logs to Stackdriver logging automatically.
+
+Since I'm using Node, I'd be taking Bunyan as my logging library. Need to see the code?
+
+
+```javascript
+// Imports the Google Cloud client library for Bunyan
+const {LoggingBunyan} = require('@google-cloud/logging-bunyan’);
+const loggingBunyan = new LoggingBunyan();
+
+// Create a Bunyan logger that streams to Stackdriver Logging
+// Logs will be written to: "projects/YOUR_PROJECT_ID/logs/bunyan_log“
+const logger = bunyan.createLogger({  
+
+     // The JSON payload of the log as it appears in Stackdriver Logging 
+    // will contain "name": "my-service"  
+    name: 'default-service-stackdriver-node-demo’,  
+    streams: [   
+         // Log to the console at 'info' and above    
+        {stream: process.stdout, level: 'debug'},  
+ 
+        // And log to Stackdriver Logging, logging at 'info' and above    
+       loggingBunyan.stream('info'),  
+    ],
+});
+
+
+//  A simple example
+logger.error("An error occurred");
+
+```
+
+Once we connect the stackdriver logging library to our own application logging library, we can then easily stream our logs as easily as it is to print. 
+
+
+
+## Other features
+
+Various services can be monitored by Stackdriver and we can also set alerts and notifications to send emails for various metrics.
+A couple of them are:
+
+ - Response code status occurrences over a timeline
+ - Downtime of our server 
+ - Load threshold
+ - Request threshold
+ 
+ And a lot of other standard metrics you'd be interested in setting up.
+ 
+ You can check out Google cloud, new signups get 300$ to use the platform and you can head down to [Stackdriver](https://app.google.stackdriver.com) and setup a couple checks for your server and instances managing your applications.
+ 
+ 
+ For more practical sessions on setting up uptime checks, kindly move on to doing this [quickstart codelab here](https://cloud.google.com/monitoring/quickstart-lamp) to get a better intro as to how this monitoring thing works for real.
+ 
+ 
+Thanks for reading
+
+DevFest Ajah, 2018.
+
+
 
 
 
