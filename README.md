@@ -45,7 +45,98 @@ For this, to set it up in Node which was my own framework of choice
  require('@google-cloud/trace-agent').start({ enhancedDatabaseReporting: true});
 ```
 
-That's it. Once we add the dependency to our application, we can automatically use tracing. Do be sure to authenticate if you're using this outside any Google Cloud deployment service (App Engine, Compute Enigne, Kubernetes Engine). More docs [here](https://cloud.google.com/iam/docs/creating-managing-service-accounts), then continue to [here](https://cloud.google.com/trace/docs/setup/nodejs#running_locally_and_elsewhere) for setting up in another language.
+That's it. Once we add the dependency to our application, we can automatically use tracing. 
+
+Do be sure to authenticate if you're using this outside any Google Cloud deployment service (App Engine, Compute Enigne, Kubernetes Engine). 
+
+More docs [here](https://cloud.google.com/iam/docs/creating-managing-service-accounts), then continue to [here](https://cloud.google.com/trace/docs/setup/nodejs#running_locally_and_elsewhere) for authenticating properly in the SDK.
+
+
+
+## Error Reporting
+
+We call get bugs in our program but how do we manage bugs if we're running a couple thousand services and can't manage to look at them all.
+
+That's what Stackdriver Error Reporting solves, we can then proceed to see all the errors in all our applications without suffering to scroll through logs. 
+
+Like the previous tracing example, we can configure this using the SDK in any supported language of our choice.
+
+More docs [here](https://cloud.google.com/error-reporting/docs/setup/nodejs)
+
+As before, in Node, the setup is as easy as importing the dependency and using its middleware. It supports a couple of applications but I'd be using node in this one.
+
+```javascript
+
+// Imports the Google Cloud client library
+const {ErrorReporting} = require('@google-cloud/error-reporting');
+
+//...Left out other setups
+
+
+// Instantiates a client
+const errors = new ErrorReporting();
+
+app.get('/', function (req, res, next) {
+
+    const requestRandomNumber = Math.floor(Math.random() * 255);  
+
+    if (requestRandomNumber > 150) {    
+
+    //Let's purposefully break our app  and add a weird status alongside
+
+    const status = Math.floor(Math.random() * (500 - 400)) + 400;
+
+    res.send({ error: true, random: randomNumber }).status(status);    
+
+    // Forward middleware request back and this reports our error and also logs it to the console
+    // It's that easy!
+    next(new Error(`Error caused by  random number >150 with value ${requestRandomNumber}  and returned status ${status}`));
+     }
+
+}
+
+// Note that express error handling middleware should be attached after all
+// the other routes and use() calls. See the Express.js docs.
+app.use(errors.express);
+
+```
+
+There are a lot of supported servers and applications in the SDK of your choice. More docs about that can be referenced from above.
+
+
+## Debugging
+
+Stackdriver can also allow us debug our code on the deployment engine of our choice using the Stackdriver debugger tool.
+
+
+### How does that work
+
+Similar to using a debugger in your IDE, you can easily set snapshots and breakpoints in your code running on those instances automatically and it'll be setup for you.
+
+To allow you debug your running instances, you'd need to add the agent to your code for this to work
+
+Here's a code sample in the Node SDK
+
+```javascript
+//We add this and that's it
+//It's that simple
+require('@google-cloud/debug-agent').start();
+
+
+// No need for extra configurations, it’s that easy
+// Once this dependency is in your application, you can easily head to the 
+// dashboard and begin  testing your application
+
+```
+
+It's that easy, you can then go the debugger dashboard setup here and easily connect to your deployment instance to debug your production code and see all the details at certain lines automatically.
+
+You can access the dashboard here and see these things in practice [here](https://console.cloud.google.com/debug)
+
+
+
+
+
 
 
 
